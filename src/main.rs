@@ -1,14 +1,12 @@
+use std::io::Read;
 use reqwest::{self, Response};
 
 fn main() {
     
-    // get a string from the web url using async reqwest
-    let response = tokio::runtime::Runtime::new().unwrap().block_on(async {
-        make_request().await
-    }).unwrap();
-    let content = tokio::runtime::Runtime::new().unwrap().block_on(async {
-        response.text().await
-    }).unwrap();
+    // get a string from the input_1.txt stored locally
+    let mut content = String::new();
+    let mut file = std::fs::File::open("input_1.txt").unwrap();
+    file.read_to_string(&mut content).unwrap();    
 
     // parse the string into a list of integer arrays
     // the response is a list of integer arrays, each array separated by new lines
@@ -36,27 +34,27 @@ fn main() {
     triangle.push(current_row);
 
     // find the Vec with the largest sum by summing the ints in each Vec's vec
-    let mut largest_sum = 0;
+    let mut largest_sum = i32::min_value();
+    let mut second_largest_sum = i32::min_value();
+    let mut third_largest_sum = i32::min_value();
     for row in triangle {
-        let mut sum = 0;
-        for num in row {
-            sum += num;
-        }
-        println!("Sum: {}", sum);
+        let sum = row.iter().sum::<i32>();
         if sum > largest_sum {
+            third_largest_sum = second_largest_sum;
+            second_largest_sum = largest_sum;
             largest_sum = sum;
+        } else if sum > second_largest_sum {
+            third_largest_sum = second_largest_sum;
+            second_largest_sum = sum;
+        } else if sum > third_largest_sum {
+            third_largest_sum = sum;
         }
     }
 
+    println!("Third largest sum: {}", third_largest_sum);
+    println!("Second largest sum: {}", second_largest_sum);
     println!("Largest sum: {}", largest_sum);
+    println!("Top three total: {}", third_largest_sum + second_largest_sum + largest_sum);
 
-
-}
-
-async fn make_request() -> Result<Response, reqwest::Error> {
-    let response = reqwest::get("https://jmbartelt.com/misc/advent1.txt").await?;
-
-    // return the response
-    Ok(response)
 
 }
